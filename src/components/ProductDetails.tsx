@@ -1,5 +1,7 @@
 import { IProduct } from "@/types/types"
 import Image from 'next/image'
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+interface Props extends Omit<IProduct, 'id'> { }
 
 export const ProductDetails = ({
     title,
@@ -10,7 +12,7 @@ export const ProductDetails = ({
     widthImage,
     heightImage,
     number
-}: IProduct) => {
+}: Props) => {
     return (
         <div className='flex flex-wrap gap-4 items-center w-full px-2 py-2'>
             {number && <span className="py-2">#{number}</span>}
