@@ -1,71 +1,92 @@
-import { IProduct } from '@/types/types'
-import { create } from 'zustand'
+import { createProduct, deleteProductById, updateProductById, fetchProducts, fetchProductById } from '@/hooks/useProducts';
+import { ICreateProduct, IProduct, IUpdateProduct } from '@/types/types';
+import { create } from 'zustand';
 
 interface StoreState {
     products: IProduct[]
-    product: IProduct,
+    totalCount: number
+    product: IProduct
     isLoading: boolean
-    getProducts: () => Promise<IProduct[] | undefined>
-    getProductById: (id: number) => Promise<IProduct | undefined>
-    removeProductById: (id: number) => Promise<IProduct | undefined>
-    isError: boolean
+    isError: boolean;
+    getProducts: ({ limit, page }: { limit?: string | undefined, page?: string | undefined , filter: string }) => Promise<void>
+    createProduct: (product: ICreateProduct) => Promise<void>
+    getProductById: (id: string) => Promise<void>
+    removeProductById: (id: number) => Promise<void>
+    updateProductById: (product: IUpdateProduct) => Promise<void>
 }
 
-export const useStore = create<StoreState>((set) => ({
+export const useProductStore = create<StoreState>((set) => ({
     products: [],
     product: {} as IProduct,
     isLoading: false,
     isError: false,
-    getProducts: async () => {
-        set({ isError: false, isLoading: true });
+    totalCount: 0,
+    getProducts: async ({ limit, page, filter }: { limit?: string, page?: string, filter?: string }) => {
+        set({ isLoading: true, isError: false });
         try {
-            const response = await fetch(process.env.NEXT_PUBLIC_API_URL!);
+            const response = await fetchProducts({ limit, page, filter })
+            set({ products: response?.products });
+            set({ totalCount: response?.totalCount })
 
-            const products = await response.json() as IProduct[]
-            set({ products });
-            return products
-
-        } catch (e) {
-            console.error(e);
-            set({ isError: true });
+        } catch (error) {
+            console.error(error)
+            set({ isError: true })
         } finally {
-            set({ isLoading: false });
+            set({ isLoading: false })
         }
     },
-    getProductById: async (id: number) => {
-        set({ isError: false, isLoading: true });
+    createProduct: async (product: ICreateProduct) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL!}/${id}`);
+            const productData = await createProduct(product)
+            set({ product: productData })
 
-            const product = await response.json() as IProduct
-            set({ product });
-            return product
-
-        } catch (e) {
-            console.error(e);
-            set({ isError: true });
+            set((state) => ({
+                products: [productData, ...state.products],
+                totalCount: state.totalCount + 1
+            }));
+        } catch (error) {
+            console.error(error)
+            set({ isError: true })
+        }
+    },
+    getProductById: async (id: string) => {
+        set({ isLoading: true, isError: false })
+        try {
+            const product = await fetchProductById(id)
+            set({ product })
+        } catch (error) {
+            console.error(error)
+            set({ isError: true })
         } finally {
-            set({ isLoading: false });
+            set({ isLoading: false })
+        }
+    },
+    updateProductById: async (product: IUpdateProduct) => {
+        try {
+            const updatedProduct = await updateProductById(product)
+            set({ product: updatedProduct })
+
+            set((state) => ({
+                products: state.products.map((item) =>
+                    item.id === updatedProduct.id
+                        ? { ...item, like: item.like }
+                        : item
+                )
+            }))
+        } catch (error) {
+            console.error(error)
+            set({ isError: true })
         }
     },
     removeProductById: async (id: number) => {
-        // set({ isError: false, isLoading: true });
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL!}/${id}`, {
-                method: 'DELETE'
-            });
-
-            const product = await response.json() as IProduct
+            const deletedProduct = await deleteProductById(id)
             set((state) => ({
-                products: state.products.filter(product => product.id !== id)
+                products: state.products.filter(product => product.id !== deletedProduct.id),
+                totalCount: state.totalCount - 1
             }));
-            return product
-
-        } catch (e) {
-            console.error(e);
-            // set({ isError: true });
-        } finally {
-            // set({ isLoading: false });
+        } catch (error) {
+            console.error(error)
         }
-    },
-}));
+    }
+}))
