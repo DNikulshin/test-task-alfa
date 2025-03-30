@@ -1,35 +1,31 @@
+'use client'
 import { useProductStore } from "@/store/store";
 import { ICreateProduct } from "@/types/types";
 import { ChangeEventHandler, FormEventHandler, useState } from "react";
+import { redirect } from 'next/navigation'
 
-export const FormCreateProduct = ({ onClose }: { onClose: () => void }) => {
+
+export const FormCreateProduct = () => {
     const [product, setProduct] = useState<ICreateProduct>({} as ICreateProduct)
     const createProduct = useProductStore(state => state.createProduct)
-    const [isOpen, setIsOpen] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
-        e.preventDefault();
+        e.preventDefault()
 
         if (!product.title || !product.description || !product.category || !product.price || !product.image) {
-            setError('All fields must be filled!');
+            setError('All fields must be filled!')
             return
         }
+        await createProduct(product)
+        redirect('/products')
 
-        try {
-            const createdProduct = await createProduct(product)
-            console.log('Product created:', createdProduct)
-            setProduct({} as ICreateProduct)
-            setIsOpen(false)
-            onClose()
-        } catch (error) {
-            console.error('Error creating product:', error)
-        }
-    };
+
+    }
 
     const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
         e.preventDefault();
-        const { name, value } = e.target;
+        const { name, value } = e.target
         setProduct((prevProduct) => ({
             ...prevProduct,
             [name]: value,
@@ -57,12 +53,10 @@ export const FormCreateProduct = ({ onClose }: { onClose: () => void }) => {
         setError(null)
     }
 
-    if (!isOpen) return null
-
     return (
         <form onSubmit={handleSubmit}
             onClick={(e) => e.stopPropagation()}
-            className="w-full flex gap-4 flex-col px-4 pt-8 pb-4 md:w-3/4 bg-gray-900 shadow-sm shadow-amber-100 fixed top-[30%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
+            className="w-full flex gap-4 flex-col px-4 pt-8 pb-4 md:w-3/4 bg-gray-900 shadow-sm shadow-amber-100 mx-auto">
             {error && <div className="text-red-500 text-center">{error}</div>}
             <input
                 className="border border-amber-50 px-2 py-1"
@@ -105,21 +99,14 @@ export const FormCreateProduct = ({ onClose }: { onClose: () => void }) => {
                 placeholder="Product Price"
             />
 
-            <div className="flex gap-8 w-full justify-center items-center">
+            <div className="flex gap-8 w-full justify-center items-center px-4">
                 <button
-                    className="bg-green-500/85 rounded-sm px-2 py-1 cursor-pointer"
+                    className="bg-green-500/85 rounded-sm px-4 py-2 cursor-pointer text-lg ml-auto"
                     type="submit"
                 >
                     Submit
                 </button>
-
-                <button
-                    className="bg-red-500/85 rounded-sm px-2 py-1 cursor-pointer"
-                    type="button"
-                    onClick={onClose}>
-                    Cancel
-                </button>
             </div>
         </form>
-    );
-};
+    )
+}

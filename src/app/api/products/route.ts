@@ -13,7 +13,7 @@ export async function GET(req: Request): Promise<Response> {
 
         const skip = (page - 1) * (limit || 0)
 
-        const totalCount = await prismaClient.product.count();
+        const totalCount = await prismaClient.product.count()
 
         const products = await prismaClient.product.findMany({
             where: { like: filterParam ? !!filterParam : undefined },

@@ -1,13 +1,11 @@
 'use client'
-import { FormCreateProduct } from "@/components/FormCreateProduct"
-import { Modal } from "@/components/Modal"
 import { Pagination } from "@/components/Pagination"
 import { Product } from "@/components/Product"
 import { useProductStore } from "@/store/store"
+import Link from "next/link"
 import { useEffect, useState } from "react"
 
 export default function ProductsPage() {
-  const [isVisibleForm, setIsVisibleForm] = useState(false)
   const [filter, setFilter] = useState('')
   const products = useProductStore(state => state.products)
   const totalCount = useProductStore(state => state.totalCount)
@@ -29,6 +27,7 @@ export default function ProductsPage() {
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilter(e.target.value)
+    setCurrentPage(1)
   }
 
   if (isLoading) {
@@ -40,8 +39,8 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 justify-center items-center">
-      <div className="flex justify-center items-center w-full gap-6">
+    <div className="flex flex-col items-center justify-between gap-4 min-h-[95%]">
+      <div className="flex flex-wrap justify-center items-center w-full gap-4">
         <select
           value={filter}
           onChange={handleFilterChange}
@@ -50,23 +49,14 @@ export default function ProductsPage() {
           <option value="">All Products</option>
           <option value="like">like</option>
         </select>
-        <button className=' bg-green-500 px-2 py-1 rounded-sm cursor-pointer text-md'
-          onClick={() => setIsVisibleForm(!isVisibleForm)}
+        <Link className=' bg-green-500 px-4 py-2 rounded-sm cursor-pointer text-md'
+          href="/create-product"
         >
-          {isVisibleForm ? 'Close' : 'Create'}
-        </button>
-
-
-        {
-          isVisibleForm &&
-          <Modal isVisible={setIsVisibleForm}>
-            <FormCreateProduct onClose={() => setIsVisibleForm(false)} />
-          </Modal>
-        }
-
+          Create Product
+        </Link>
         <div className="flex items-center justify-center gap-2">
 
-          {(totalCount  > 0) &&
+          {(totalCount > 0) &&
             <>
               <h3 className="text-xl">Count:</h3>
               <strong>
@@ -88,7 +78,7 @@ export default function ProductsPage() {
       </div>
 
 
-      {(totalCount > 0) ?
+      {((totalCount && products.length) > 0) ?
         <div className="flex  flex-col gap-4">
           {products.map((product, idx) =>
             <Product
@@ -99,14 +89,15 @@ export default function ProductsPage() {
             />
           )
           }
-          <Pagination
-            currentPage={currentPage}
-            totalPages={Math.ceil(totalCount / itemsPerPage)}
-            onPageChange={handlePageChange}
-          />
+
         </div>
-        : <div className="text-red-500 font-bold">Not Tasks...</div>
+        : <div className="text-red-500 font-bold text-center">Not Tasks...</div>
       }
+      <Pagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(totalCount / itemsPerPage)}
+        onPageChange={handlePageChange}
+      />
     </div>
   )
 

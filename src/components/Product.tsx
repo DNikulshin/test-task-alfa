@@ -63,7 +63,7 @@ export const Product = (
                 :
                 <>
                     <Link href={`${PATH_PRODUCTS}/${id}`}>
-                        <div className='flex flex-wrap gap-2 justify-between items-center max-h[250px]'>
+                        <div className='flex flex-wrap gap-2 justify-between items-center h-[250px]'>
                             <div className='flex flex-wrap gap-2 items-center w-full'>
                                 <ProductDetails
                                     title={title}
