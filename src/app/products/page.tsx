@@ -29,6 +29,7 @@ export default function ProductsPage() {
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilter(e.target.value)
+    setCurrentPage(1)
   }
 
   if (isLoading) {
@@ -40,7 +41,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 justify-center items-center">
+    <div className="flex flex-col gap-6 justify-center items-center ">
       <div className="flex justify-center items-center w-full gap-6">
         <select
           value={filter}
@@ -66,7 +67,7 @@ export default function ProductsPage() {
 
         <div className="flex items-center justify-center gap-2">
 
-          {(totalCount  > 0) &&
+          {(totalCount > 0) &&
             <>
               <h3 className="text-xl">Count:</h3>
               <strong>
@@ -88,7 +89,7 @@ export default function ProductsPage() {
       </div>
 
 
-      {(totalCount > 0) ?
+      {((totalCount && products.length) > 0) ?
         <div className="flex  flex-col gap-4">
           {products.map((product, idx) =>
             <Product
@@ -99,14 +100,15 @@ export default function ProductsPage() {
             />
           )
           }
-          <Pagination
-            currentPage={currentPage}
-            totalPages={Math.ceil(totalCount / itemsPerPage)}
-            onPageChange={handlePageChange}
-          />
+
         </div>
         : <div className="text-red-500 font-bold">Not Tasks...</div>
       }
+      <Pagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(totalCount / itemsPerPage)}
+        onPageChange={handlePageChange}
+      />
     </div>
   )
 

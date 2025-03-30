@@ -1,21 +1,27 @@
 import { prismaClient } from '@/shared/lib/prismaClient'
 import { IUpdateProduct } from '@/types/types';
 
+function isValidId(id: string): boolean {
+    const num = Number(id);
+    return Number.isInteger(num) && num > 0
+}
+
+
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
     try {
 
         const { id } = await params
 
-        if (!id) {
-            return new Response(JSON.stringify({ error: 'Product ID is required' }), {
+        if (!id || !isValidId(id)) {
+            return new Response(JSON.stringify({ error: 'Valid Product ID is required' }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
-            })
+            });
         }
 
         const product = await prismaClient.product.findFirst({ where: { id: +id } })
 
-        
+
         if (!product) {
             return new Response(JSON.stringify({ error: 'Product not found' }), {
                 status: 404,
